@@ -17,7 +17,7 @@ body {
 .btn-xl {
   padding: 1.25rem 2.5rem;
 }
-
+.TEST { background-color: #000000; background-position: center center; background-repeat: no-repeat; background-size: cover; }
 .content-section {
   padding-top: 7.5rem;
   padding-bottom: 7.5rem;
@@ -98,6 +98,7 @@ h6 {
   background-repeat: no-repeat;
   background-size: cover;
 }
+
 
 .masthead h1 {
   font-size: 4rem;
@@ -317,6 +318,7 @@ footer.footer .social-link {
   transition: background-color 0.15s ease-in-out;
   box-shadow: 0 3px 3px 0 rgba(0, 0, 0, 0.1);
 }
+
 
 footer.footer .social-link:hover {
   background-color: #155d74;
