@@ -1,8 +1,4 @@
-/*!
- * Start Bootstrap - Stylish Portfolio v5.0.8 (https://startbootstrap.com/themes/stylish-portfolio)
- * Copyright 2013-2020 Start Bootstrap
- * Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-stylish-portfolio/blob/master/LICENSE)
- */
+.nobr { white-space:nowrap; }
 
 body,
 html {
@@ -17,11 +13,7 @@ body {
 .btn-xl {
   padding: 1.25rem 2.5rem;
 }
-.TEST { background-color: #000000; background-position: center center; background-repeat: no-repeat; background-size: cover; }
-.content-section {
-  padding-top: 7.5rem;
-  padding-bottom: 7.5rem;
-}
+
 
 .content-section-heading h2 {
   font-size: 3rem;
