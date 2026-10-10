@@ -62,7 +62,7 @@
     padding:9px 16px; border-bottom:1px solid var(--line);
   }
   .row{
-    display:grid; grid-template-columns:42px 1fr 96px 96px 104px 92px 26px; gap:10px;
+    display:grid; grid-template-columns:42px 1fr 96px 132px 92px 26px; gap:10px;
     padding:10px 16px; border-bottom:1px solid #f1f4f7; align-items:start;
   }
   .row:last-child{border-bottom:0}
@@ -110,29 +110,25 @@
   .note.flag{color:var(--warn); background:var(--warn-soft); border-radius:4px; padding:2px 6px; display:inline-block}
   .sets{font-variant-numeric:tabular-nums; font-weight:600; font-size:14px}
   .rest{color:var(--muted); font-size:13px}
+  .kgcell{display:flex; flex-wrap:wrap; gap:4px; align-items:center}
   .kgcell input{
-    width:100%; font:600 13px ui-monospace, Consolas, monospace; color:var(--ink);
+    flex:1 1 64px; min-width:0; font:600 13px ui-monospace, Consolas, monospace; color:var(--ink);
     background:#fff; border:1px solid var(--line); border-radius:6px; padding:4px 5px;
     text-align:center; font-variant-numeric:tabular-nums;
   }
   .kgcell input::placeholder{color:#9aa7b3; font-weight:400}
   .kgcell input:focus{outline:1px solid var(--accent)}
   .kgcell .lockbtn{
-    margin-top:3px; width:100%; background:#fff; border:1px solid var(--line); border-radius:6px;
-    color:#8a97a3; cursor:pointer; font-size:11px; line-height:1.3; padding:2px 4px; font-family:inherit;
+    flex:0 0 auto; background:#fff; border:1px solid var(--line); border-radius:6px;
+    color:#8a97a3; cursor:pointer; font-size:11px; line-height:1.3; padding:4px 6px;
+    font-family:inherit; white-space:nowrap;
   }
   .kgcell .lockbtn:hover{border-color:var(--accent); color:var(--accent)}
   .kgcell .lockbtn.on{background:var(--accent-soft); border-color:#9fd6cc; color:#0b5c51; font-weight:700}
-  .kgcmp{margin-top:3px; font:11px/1.3 ui-monospace, Consolas, monospace; text-align:center; white-space:nowrap}
+  .kgcmp{flex:1 1 100%; font:11px/1.3 ui-monospace, Consolas, monospace; text-align:center; white-space:nowrap}
   .kgcmp.pr{color:#0b7a5f; font-weight:700}
   .kgcmp.below{color:var(--warn)}
   .kgcmp.none{color:#9aa7b3}
-  .datecell input{
-    width:100%; font:600 12px ui-monospace, Consolas, monospace; color:var(--ink);
-    background:#fff; border:1px solid var(--line); border-radius:6px; padding:4px 3px; text-align:center;
-  }
-  .datecell input:focus{outline:1px solid var(--accent)}
-  .datecell .ago{margin-top:2px; font-size:10.5px; color:var(--muted); text-align:center; white-space:nowrap}
   .keep{text-align:center}
   .keep input{width:17px; height:17px; cursor:pointer; accent-color:var(--accent)}
   .row.done .ex a{color:#8a97a3; text-decoration:line-through}
@@ -152,10 +148,9 @@
   .notes code{background:var(--chip); padding:1px 5px; border-radius:4px; font-size:12.5px}
   footer{max-width:1080px; margin:0 auto 40px; padding:0 18px; color:var(--muted); font-size:12.5px}
   @media (max-width:720px){
-    .row{grid-template-columns:30px 1fr 22px; grid-template-areas:"i e k" ". s ." ". g ." ". d ." ". r ."}
-    .idx{grid-area:i} .ex{grid-area:e} .keep{grid-area:k} .kgcell{grid-area:g} .datecell{grid-area:d}
-    .kgcell input{font-size:16px; width:auto; max-width:110px} /* 16px stops iOS zoom-on-focus */
-    .datecell input{font-size:16px; max-width:150px}
+    .row{grid-template-columns:30px 1fr 22px; grid-template-areas:"i e k" ". s ." ". g ." ". r ."}
+    .idx{grid-area:i} .ex{grid-area:e} .keep{grid-area:k} .kgcell{grid-area:g}
+    .kgcell input{font-size:16px; flex:1 1 70px; max-width:120px} /* 16px stops iOS zoom-on-focus */
     .sets{grid-area:s; padding-top:5px} .rest{grid-area:r; padding-top:2px}
 
     /* Header + toolbar: let everything wrap so buttons never overflow */
@@ -537,7 +532,11 @@ function reviewerKey(){
 function tickKey(id){ return STORE_PREFIX + 'tick:' + reviewerKey() + ':' + id; }
 function kgKey(id){ return STORE_PREFIX + 'kg:' + reviewerKey() + ':' + id; }
 function maxKey(id){ return STORE_PREFIX + 'max:' + reviewerKey() + ':' + id; }
-function lastKey(id){ return STORE_PREFIX + 'last:' + reviewerKey() + ':' + id; }
+
+// The "Last done" date field was removed — clear any dates stored by earlier versions.
+Object.keys(localStorage)
+  .filter(k => k.indexOf(STORE_PREFIX + 'last:') === 0)
+  .forEach(k => localStorage.removeItem(k));
 
 function parseKg(v){
   const n = parseFloat(String(v || '').replace(',', '.'));
@@ -558,16 +557,6 @@ function refreshKgCmp(row){
   else { disp.textContent = 'max ' + fmtKg(mx) + ' (−' + fmtKg(mx - best) + ')'; disp.className = 'kgcmp below'; }
 }
 
-// "Last done" caption: today / yesterday / N days ago.
-function refreshAgo(row){
-  const cap = row.querySelector('.ago');
-  if (!cap) return;
-  const iso = (row.querySelector('.datecell input') || {}).value || '';
-  if (!iso){ cap.textContent = ''; return; }
-  const days = Math.floor((Date.now() - new Date(iso + 'T00:00:00').getTime()) / 86400000);
-  cap.textContent = days <= 0 ? 'today' : (days === 1 ? 'yesterday' : days + ' days ago');
-}
-
 // "Best kg" = highest weight used for this exercise. Datalist gives a dropdown of
 // common weights but the field still accepts any typed value (e.g. 47.5).
 function wt(input, id){
@@ -581,9 +570,6 @@ function applyWeights(){
     const lock = r.querySelector('.lockbtn');
     if (lock) setLockState(lock, !!localStorage.getItem(maxKey(r.id)));
     refreshKgCmp(r);
-    const di = r.querySelector('.datecell input');
-    if (di) di.value = localStorage.getItem(lastKey(r.id)) || '';
-    refreshAgo(r);
   });
 }
 
@@ -713,8 +699,7 @@ document.getElementById('exportNotesBtn').addEventListener('click', () => {
     exported: new Date().toISOString(),
     notes: loadNotes(),
     weights: collectWeights(),
-    maxes: collectMaxes(),
-    lastDone: collectLastDone()
+    maxes: collectMaxes()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -959,25 +944,6 @@ WEEKS.forEach((week, wi) => {
       r.className = 'rest';
       r.textContent = rest;
 
-      const dc = document.createElement('div');
-      dc.className = 'datecell';
-      // NB: name this `dt`, not `di` — `di` is the day index in the outer forEach,
-      // and shadowing it breaks the id line above (TDZ ReferenceError).
-      const dt = document.createElement('input');
-      dt.type = 'date';
-      dt.title = 'Last done (when you last performed this exercise)';
-      dt.value = localStorage.getItem(lastKey(id)) || '';
-      dt.addEventListener('change', () => {
-        if (dt.value) localStorage.setItem(lastKey(id), dt.value);
-        else localStorage.removeItem(lastKey(id));
-        refreshAgo(row);
-      });
-      dc.appendChild(dt);
-      const ago = document.createElement('div');
-      ago.className = 'ago';
-      dc.appendChild(ago);
-      refreshAgo(row);
-
       const k = document.createElement('div');
       k.className = 'keep';
       const cb = document.createElement('input');
@@ -991,10 +957,9 @@ WEEKS.forEach((week, wi) => {
       row.classList.toggle('done', cb.checked);
       k.appendChild(cb);
 
-      row.append(idx, ex, s, kg, dc, r, k);
+      row.append(idx, ex, s, kg, r, k);
       body.appendChild(row);
-      refreshKgCmp(row); // now that kg/dc cells are attached to the row
-      refreshAgo(row);
+      refreshKgCmp(row); // now that the kg cell is attached to the row
 
       const nbox = document.createElement('div');
       nbox.className = 'notebox';
@@ -1050,15 +1015,6 @@ function collectMaxes(){
   document.querySelectorAll('.row').forEach(r => {
     const v = localStorage.getItem(maxKey(r.id));
     if (v) out[r.id] = v;
-  });
-  return out;
-}
-
-function collectLastDone(){
-  const out = {};
-  document.querySelectorAll('.row').forEach(r => {
-    const inp = r.querySelector('.datecell input');
-    if (inp && inp.value) out[r.id] = inp.value;
   });
   return out;
 }
