@@ -961,16 +961,18 @@ WEEKS.forEach((week, wi) => {
 
       const dc = document.createElement('div');
       dc.className = 'datecell';
-      const di = document.createElement('input');
-      di.type = 'date';
-      di.title = 'Last done (when you last performed this exercise)';
-      di.value = localStorage.getItem(lastKey(id)) || '';
-      di.addEventListener('change', () => {
-        if (di.value) localStorage.setItem(lastKey(id), di.value);
+      // NB: name this `dt`, not `di` — `di` is the day index in the outer forEach,
+      // and shadowing it breaks the id line above (TDZ ReferenceError).
+      const dt = document.createElement('input');
+      dt.type = 'date';
+      dt.title = 'Last done (when you last performed this exercise)';
+      dt.value = localStorage.getItem(lastKey(id)) || '';
+      dt.addEventListener('change', () => {
+        if (dt.value) localStorage.setItem(lastKey(id), dt.value);
         else localStorage.removeItem(lastKey(id));
         refreshAgo(row);
       });
-      dc.appendChild(di);
+      dc.appendChild(dt);
       const ago = document.createElement('div');
       ago.className = 'ago';
       dc.appendChild(ago);
