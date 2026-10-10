@@ -62,7 +62,7 @@
     padding:9px 16px; border-bottom:1px solid var(--line);
   }
   .row{
-    display:grid; grid-template-columns:42px 1fr 96px 92px 26px; gap:10px;
+    display:grid; grid-template-columns:42px 1fr 96px 78px 92px 26px; gap:10px;
     padding:10px 16px; border-bottom:1px solid #f1f4f7; align-items:start;
   }
   .row:last-child{border-bottom:0}
@@ -110,6 +110,13 @@
   .note.flag{color:var(--warn); background:var(--warn-soft); border-radius:4px; padding:2px 6px; display:inline-block}
   .sets{font-variant-numeric:tabular-nums; font-weight:600; font-size:14px}
   .rest{color:var(--muted); font-size:13px}
+  .kgcell input{
+    width:100%; font:600 13px ui-monospace, Consolas, monospace; color:var(--ink);
+    background:#fff; border:1px solid var(--line); border-radius:6px; padding:4px 5px;
+    text-align:center; font-variant-numeric:tabular-nums;
+  }
+  .kgcell input::placeholder{color:#9aa7b3; font-weight:400}
+  .kgcell input:focus{outline:1px solid var(--accent)}
   .keep{text-align:center}
   .keep input{width:17px; height:17px; cursor:pointer; accent-color:var(--accent)}
   .row.done .ex a{color:#8a97a3; text-decoration:line-through}
@@ -129,8 +136,9 @@
   .notes code{background:var(--chip); padding:1px 5px; border-radius:4px; font-size:12.5px}
   footer{max-width:1080px; margin:0 auto 40px; padding:0 18px; color:var(--muted); font-size:12.5px}
   @media (max-width:720px){
-    .row{grid-template-columns:30px 1fr 22px; grid-template-areas:"i e k" ". s ." ". r ."}
-    .idx{grid-area:i} .ex{grid-area:e} .keep{grid-area:k}
+    .row{grid-template-columns:30px 1fr 22px; grid-template-areas:"i e k" ". s ." ". g ." ". r ."}
+    .idx{grid-area:i} .ex{grid-area:e} .keep{grid-area:k} .kgcell{grid-area:g}
+    .kgcell input{font-size:16px; width:auto; max-width:110px} /* 16px stops iOS zoom-on-focus */
     .sets{grid-area:s; padding-top:5px} .rest{grid-area:r; padding-top:2px}
 
     /* Header + toolbar: let everything wrap so buttons never overflow */
@@ -220,6 +228,8 @@
   </details>
 
 </main>
+
+<datalist id="kglist"></datalist>
 
 <footer>
   Built for review &middot; self-contained file, no internet needed except the video links &middot; edit requests can reference exercise IDs.
@@ -508,6 +518,20 @@ function reviewerKey(){
   return anon;
 }
 function tickKey(id){ return STORE_PREFIX + 'tick:' + reviewerKey() + ':' + id; }
+function kgKey(id){ return STORE_PREFIX + 'kg:' + reviewerKey() + ':' + id; }
+
+// "Best kg" = highest weight used for this exercise. Datalist gives a dropdown of
+// common weights but the field still accepts any typed value (e.g. 47.5).
+function wt(input, id){
+  const v = input.value.trim();
+  if (v) localStorage.setItem(kgKey(id), v); else localStorage.removeItem(kgKey(id));
+}
+function applyWeights(){
+  document.querySelectorAll('.row').forEach(r => {
+    const inp = r.querySelector('.kgcell input');
+    if (inp) inp.value = localStorage.getItem(kgKey(r.id)) || '';
+  });
+}
 
 function applyTicks(){
   document.querySelectorAll('.row').forEach(r => {
@@ -621,6 +645,7 @@ whoamiInput.value = localStorage.getItem(STORE_PREFIX + 'name') || '';
 whoamiInput.addEventListener('change', () => {
   localStorage.setItem(STORE_PREFIX + 'name', whoamiInput.value.trim());
   applyTicks(); // switching the name switches which private tick set you're viewing
+  applyWeights(); // ...and which set of personal bests you're seeing
 });
 
 
@@ -632,7 +657,8 @@ document.getElementById('exportNotesBtn').addEventListener('click', () => {
     program: 'Raouf 4 Week Program',
     reviewer: whoami(),
     exported: new Date().toISOString(),
-    notes: loadNotes()
+    notes: loadNotes(),
+    weights: collectWeights()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -834,6 +860,19 @@ WEEKS.forEach((week, wi) => {
       s.className = 'sets';
       s.textContent = sets + ' × ' + reps;
 
+      const kg = document.createElement('div');
+      kg.className = 'kgcell';
+      const ki = document.createElement('input');
+      ki.type = 'text';
+      ki.setAttribute('list', 'kglist');
+      ki.placeholder = 'kg';
+      ki.title = 'Highest weight used (kg)';
+      ki.setAttribute('inputmode', 'decimal');
+      ki.setAttribute('autocomplete', 'off');
+      ki.value = localStorage.getItem(kgKey(id)) || '';
+      ki.addEventListener('change', () => wt(ki, id));
+      kg.appendChild(ki);
+
       const r = document.createElement('div');
       r.className = 'rest';
       r.textContent = rest;
@@ -851,7 +890,7 @@ WEEKS.forEach((week, wi) => {
       row.classList.toggle('done', cb.checked);
       k.appendChild(cb);
 
-      row.append(idx, ex, s, r, k);
+      row.append(idx, ex, s, kg, r, k);
       body.appendChild(row);
 
       const nbox = document.createElement('div');
@@ -880,6 +919,29 @@ function select(i){
 }
 select(0);
 
+// Populate the shared weight dropdown: 1–100 in 1s, then 102.5–250 in 2.5s.
+(function(){
+  const dl = document.getElementById('kglist');
+  const frag = document.createDocumentFragment();
+  for (let v = 1; v <= 100; v++){
+    const o = document.createElement('option'); o.value = String(v); frag.appendChild(o);
+  }
+  for (let v = 102.5; v <= 250; v += 2.5){
+    const o = document.createElement('option'); o.value = v.toFixed(1); frag.appendChild(o);
+  }
+  dl.appendChild(frag);
+})();
+
+function collectWeights(){
+  const out = {};
+  document.querySelectorAll('.row').forEach(r => {
+    const inp = r.querySelector('.kgcell input');
+    const v = inp ? inp.value.trim() : '';
+    if (v) out[r.id] = v;
+  });
+  return out;
+}
+
 document.getElementById('tagBtn').addEventListener('click', function(){
   const hidden = document.body.classList.toggle('no-tags');
   this.textContent = hidden ? 'Show muscle tags' : 'Hide muscle tags';
@@ -892,7 +954,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   Object.keys(localStorage).filter(k => k.startsWith(pfx)).forEach(k => localStorage.removeItem(k));
   document.querySelectorAll('.row').forEach(r => {
     r.classList.remove('done');
-    const cb = r.querySelector('input'); if (cb) cb.checked = false;
+    const cb = r.querySelector('input[type="checkbox"]'); if (cb) cb.checked = false;
   });
 });
 </script>
