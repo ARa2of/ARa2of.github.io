@@ -57,6 +57,8 @@
   }
   .dname{font-weight:700; font-size:16px; color:#0b5c51; letter-spacing:.3px}
   .dsub{color:var(--muted); font-size:13px}
+  .daycomplete .dname,
+  .daycomplete .dsub{text-decoration:line-through; text-decoration-color:#9aabb8}
   .warm{
     background:var(--accent-soft); color:#0b5c51; font-size:13px;
     padding:9px 16px; border-bottom:1px solid var(--line);
@@ -280,7 +282,7 @@ const WEEKS = [
         title: "Chest / Front &amp; Side Delts / Biceps / Abs",
         warm: "Warm-up: push-ups, band pull-aparts, jumping jacks — 3 rounds / 10 / 30s + 5 min bike",
         ex: [
-          ["Flat Barbell Bench Press","4","8–12","45–60s",""],
+          ["Standing Cable Flye Combo","3","8–12","45–60s","Flye combo: 1× low→high / 1× mid / 1× high→low"],
           ["Incline Machine Chest Press","4","8–12","45–60s",""],
           ["Cable Crossover","7","10","30s","FST-7 — focus and squeeze"],
           ["Seated Dumbbell Shoulder Press","3","8–12","45–60s",""],
@@ -317,7 +319,7 @@ const WEEKS = [
           ["Walking Lunge","3","10–12 / leg","45–60s",""],
           ["Standing Calf Raise","4","10–15","45–60s",""],
           ["Back Hyperextension","3","12–15","45–60s",""],
-          ["Cable Crunch","3","To failure","45–60s",""]
+          ["Hanging Leg Raise","3","To failure","45–60s",""]
         ]
       },
       {
@@ -327,10 +329,10 @@ const WEEKS = [
         ex: [
           ["Incline Dumbbell Press","3","10–12","45–60s",""],
           ["Neutral-Grip Lat Pulldown","3","10–12","45–60s",""],
-          ["Cable Lateral Raise","3","12–15","45–60s",""],
+          ["Farmer Walk","3","40s carry / side","45–60s","Core & grip finisher"],
           ["Cable Curl","3","12–15","45–60s","Superset with Reverse-Grip Pushdown (*3)"],
-          ["Face Pull","3","15","45–60s",""],
-          ["Cable Crunch","3","To failure","45–60s",""],
+          ["Pallof Press","3","10–12 / side","45–60s","Anti-rotation core"],
+          ["Cable Wood Chop","3","10–12 / side","45–60s","Standing anti-rotation core"],
           ["Incline walk or bike","1","10 min","—","Skip if short on time"]
         ]
       }
@@ -344,7 +346,7 @@ const WEEKS = [
         title: "Chest / Front &amp; Side Delts / Biceps / Abs",
         warm: "Warm-up: push-ups, band pull-aparts, jumping jacks — 3 rounds / 10 / 30s + 5 min bike",
         ex: [
-          ["Incline Barbell Press","4","8–12","45–60s",""],
+          ["Standing Cable Flye Combo","6","8–12","45–60s","2× low→high / 2× mid / 2× high→low · superset Push-Up to failure"],
           ["Plate-Loaded Machine Chest Press","4","8–12","45–60s","+5 partial reps on last set"],
           ["Pec Deck Flye","7","10","30s","FST-7 — focus on squeeze"],
           ["Machine Shoulder Press","3","8–12","45–60s",""],
@@ -391,10 +393,10 @@ const WEEKS = [
         ex: [
           ["Machine Chest Press","3","10–12","45–60s",""],
           ["Seated Cable Row","3","10–12","45–60s",""],
-          ["Dumbbell Lateral Raise","3","12–15","45–60s","Drop set on final set (*2)"],
+          ["Suitcase Carry","3","40s / side","45–60s","Core & grip finisher"],
           ["Hammer Curl","3","12–15","45–60s","Superset with Rope Pushdown (*3)"],
-          ["Reverse Pec-Deck","3","15","45–60s",""],
-          ["Hanging Leg Raise","3","To failure","45–60s",""]
+          ["Sled Push","3","1 lap","45–60s","Conditioning finisher"],
+          ["Cable Wood Chop","3","10–12 / side","45–60s","Standing anti-rotation core"]
         ]
       }
     ]
@@ -407,7 +409,7 @@ const WEEKS = [
         title: "Chest / Front &amp; Side Delts / Biceps / Abs",
         warm: "Warm-up: push-ups, band pull-aparts, jumping jacks — 3 rounds / 10 / 30s + 5 min bike",
         ex: [
-          ["Flat Dumbbell Press","4","8–12","45–60s","+5 partial reps on last set"],
+          ["Standing Cable Flye Combo","6","8–12","45–60s","2× low→high / 2× mid / 2× high→low · +5 partial reps on last set"],
           ["Low-to-High Cable Flye","4","12–15","45–60s",""],
           ["Incline Cable Flye","7","10","30s","FST-7"],
           ["Arnold Press","3","10–12","45–60s","Light–medium weight"],
@@ -453,11 +455,11 @@ const WEEKS = [
         warm: "Warm-up: push-ups, band pull-aparts, arm circles — 3 rounds / 10 / 30s",
         ex: [
           ["Pec Deck","3","12–15","45–60s",""],
-          ["Straight-Arm Cable Pullover","3","12–15","45–60s",""],
-          ["Arnold Press","3","10–12","45–60s",""],
+          ["Farmer Walk","3","40s carry / side","45–60s","Core & grip finisher"],
+          ["Pallof Press","3","10–12 / side","45–60s","Anti-rotation core"],
           ["Preacher Curl","3","12–15","45–60s","Superset with Overhead Rope Extension (*3)"],
           ["Barbell Shrug","3","12–15","45–60s",""],
-          ["Ab Rollout","3","To failure","45–60s",""]
+          ["Cable Wood Chop","3","10–12 / side","45–60s","Standing anti-rotation core"]
         ]
       }
     ]
@@ -470,7 +472,7 @@ const WEEKS = [
         title: "Chest / Front &amp; Side Delts / Biceps / Abs",
         warm: "Warm-up: push-ups, band pull-aparts, jumping jacks — 3 rounds / 10 / 30s + 5 min bike",
         ex: [
-          ["Incline Dumbbell Press","4","8–12","45–60s","+5 partial reps on last set"],
+          ["Standing Cable Flye Combo","6","8–12","45–60s","2× low→high / 2× mid / 2× high→low · superset Push-Up to failure"],
           ["Flat Machine Press","4","8–12","45–60s",""],
           ["Machine Chest Flye","7","10","30s","FST-7"],
           ["Standing Military Press","3","8–12","45–60s",""],
@@ -520,7 +522,7 @@ const WEEKS = [
           ["Machine Lateral Raise","3","12–15","45–60s",""],
           ["Cable Curl 21s","3","21","45–60s","7 bottom + 7 top + 7 full"],
           ["Face Pull","3","15","45–60s",""],
-          ["Plank","3","60s hold","45–60s",""]
+          ["Farmer Walk","3","40s carry / side","45–60s","Core & grip finisher"]
         ]
       }
     ]
@@ -636,6 +638,7 @@ function applyTicks(){
     const cb = r.querySelector('.keep input[type="checkbox"]');
     if (cb) cb.checked = on;
   });
+  refreshAllDays();
 }
 
 function fmtDate(ts){
@@ -861,7 +864,13 @@ const MUSCLES = {
   "Donkey Calf Raise":"calves",
   "Weighted Push-Up":"middle chest",
   "Cable Curl 21s":"biceps",
-  "Standing Military Press":"front shoulders"
+  "Standing Military Press":"front shoulders",
+  "Standing Cable Flye Combo":"upper chest",
+  "Farmer Walk":"core, grip & conditioning",
+  "Suitcase Carry":"core & grip",
+  "Sled Push":"conditioning & legs",
+  "Pallof Press":"core (anti-rotation)",
+  "Cable Wood Chop":"core (rotation & anti-rotation)"
 };
 
 // Alternative for every exercise: same movement pattern on different equipment — for when
@@ -952,7 +961,13 @@ const ALTS = {
   "Cable Curl 21s":"EZ-Bar Curl 21s",
   "Standing Military Press":"Seated Dumbbell Shoulder Press",
   "Reverse-Grip Barbell Row":"Chest-Supported Machine Row",
-  "Single-Arm Overhead Cable Extension":"Single-Arm Overhead Dumbbell Extension"
+  "Single-Arm Overhead Cable Extension":"Single-Arm Overhead Dumbbell Extension",
+  "Standing Cable Flye Combo":"Incline Dumbbell Press",
+  "Farmer Walk":"Suitcase Carry",
+  "Suitcase Carry":"Farmer Walk",
+  "Sled Push":"Burpees (finisher)",
+  "Pallof Press":"Cable Wood Chop",
+  "Cable Wood Chop":"Pallof Press"
 };
 
 const panels = document.getElementById('panels');
@@ -970,6 +985,7 @@ function videoLink(name){
 // the day; ticking Finished freezes it into a total-minutes readout. Both survive reloads.
 const dayTimers = {}; // dayId -> interval id
 const dayCtl = {};    // dayId -> {start, done, spans}
+const dayCards = {};  // dayId -> .day card element (for the done banner)
 function fmtElapsed(ms){
   const s = Math.max(0, Math.floor(ms / 1000));
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
@@ -1006,6 +1022,16 @@ function applyDayState(){
   });
 }
 
+// Day-complete banner: a day's header (name + subtitle) strikes through once every
+// exercise tick in that day is on, and clears as soon as one is unticked.
+function refreshDayDone(dayId){
+  const card = dayCards[dayId];
+  if (!card) return;
+  const cbs = card.querySelectorAll('.keep input[type="checkbox"]');
+  card.classList.toggle('daycomplete', cbs.length > 0 && Array.prototype.every.call(cbs, c => c.checked));
+}
+function refreshAllDays(){ Object.keys(dayCards).forEach(refreshDayDone); }
+
 WEEKS.forEach((week, wi) => {
   const tab = document.createElement('button');
   tab.textContent = week.label;
@@ -1021,6 +1047,7 @@ WEEKS.forEach((week, wi) => {
     const dayId = 'W' + (wi+1) + '-D' + (di+1);
     const card = document.createElement('div');
     card.className = 'day';
+    dayCards[dayId] = card;
     const head = document.createElement('h3');
     head.innerHTML = '<span class="daynum">DAY ' + (di+1) + '</span>' +
                      '<span class="dname">' + day.name + '</span>' +
@@ -1229,6 +1256,7 @@ WEEKS.forEach((week, wi) => {
       cb.addEventListener('change', () => {
         localStorage.setItem(tickKey(id), cb.checked ? '1' : '0');
         row.classList.toggle('done', cb.checked);
+        refreshDayDone(dayId);
       });
       row.classList.toggle('done', cb.checked);
       k.appendChild(cb);
@@ -1249,6 +1277,7 @@ WEEKS.forEach((week, wi) => {
     });
 
     body.appendChild(ctl2); // Finished strip at the end of the day
+    refreshDayDone(dayId); // restore the day-complete banner on reload
     panel.appendChild(card);
   });
   panels.appendChild(panel);
@@ -1341,6 +1370,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
     r.classList.remove('done');
     const cb = r.querySelector('.keep input[type="checkbox"]'); if (cb) cb.checked = false;
   });
+  refreshAllDays();
 });
 
 // Import an exported JSON: fills weights, maxes, per-side ticks, day times and notes for
