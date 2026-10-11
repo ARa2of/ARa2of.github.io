@@ -62,7 +62,7 @@
     padding:9px 16px; border-bottom:1px solid var(--line);
   }
   .row{
-    display:grid; grid-template-columns:42px 1fr 96px 132px 92px 26px; gap:10px;
+    display:grid; grid-template-columns:42px 1fr 96px 168px 92px 26px; gap:10px;
     padding:10px 16px; border-bottom:1px solid #f1f4f7; align-items:start;
   }
   .row:last-child{border-bottom:0}
@@ -125,13 +125,30 @@
   }
   .kgcell .lockbtn:hover{border-color:var(--accent); color:var(--accent)}
   .kgcell .lockbtn.on{background:var(--accent-soft); border-color:#9fd6cc; color:#0b5c51; font-weight:700}
-  .kgcmp{flex:1 1 100%; font:11px/1.3 ui-monospace, Consolas, monospace; text-align:center; white-space:nowrap}
+  .kgcmp{flex:1 1 100%; font:10.5px/1.3 ui-monospace, Consolas, monospace; text-align:center; white-space:nowrap}
+  .sidelbl{display:flex; align-items:center; gap:4px; font:11px/1 ui-monospace, Consolas, monospace;
+    color:#7c8b99; cursor:pointer; user-select:none; flex:1 1 100%; padding:1px 2px}
+  .sidelbl input{width:13px; height:13px; margin:0; cursor:pointer; accent-color:var(--accent)}
+  .sidelbl.on{color:#0b5c51; font-weight:700}
   .kgcmp.pr{color:#0b7a5f; font-weight:700}
   .kgcmp.below{color:var(--warn)}
   .kgcmp.none{color:#9aa7b3}
   .keep{text-align:center}
   .keep input{width:17px; height:17px; cursor:pointer; accent-color:var(--accent)}
   .row.done .ex a{color:#8a97a3; text-decoration:line-through}
+  .alt{margin-top:4px; font-size:12px; color:var(--muted)}
+  .alt b{font-weight:700; color:#7c8b99; font-size:10.5px; text-transform:uppercase;
+    letter-spacing:.4px; margin-right:5px}
+  .alt a{color:#0c5f8a; text-decoration:none; font-weight:600}
+  .alt a:hover{text-decoration:underline}
+  .dayctl{display:flex; align-items:center; gap:10px; padding:8px 16px; background:#fbfcfd;
+    border-bottom:1px solid var(--line); font-size:13px}
+  .dayctl.end{border-top:1px solid var(--line); border-bottom:0}
+  .dayctl label{display:flex; align-items:center; gap:7px; cursor:pointer; user-select:none;
+    color:var(--muted); font-weight:600}
+  .dayctl input{width:16px; height:16px; margin:0; cursor:pointer; accent-color:var(--accent)}
+  .daytime{margin-left:auto; font:600 12.5px ui-monospace, Consolas, monospace; color:#0b5c51;
+    font-variant-numeric:tabular-nums; white-space:nowrap}
   .legend{font-size:12.5px; color:var(--muted); margin:0 0 14px}
 .proginfo{margin:22px 0 6px; border:1px solid var(--line); border-radius:12px; background:var(--card); padding:12px 16px}
 .proginfo summary{cursor:pointer; font-weight:700; color:var(--ink); font-size:14px; letter-spacing:.2px; outline:none}
@@ -171,6 +188,7 @@
     .tabs,.tools{display:none}
     .sub{color:#555}
     .panel{display:block !important}
+    .dayctl{display:none}
     .day{break-inside:avoid; box-shadow:none}
     .day .daybody{display:block !important}
     .day .chev{display:none}
@@ -188,6 +206,8 @@
       <input id="whoami" class="whoami" type="text" placeholder="Your name (for notes)" autocomplete="off" spellcheck="false">
       <button id="tagBtn">Hide muscle tags</button>
       <button id="exportNotesBtn">Export notes</button>
+      <button id="importBtn">Import data</button>
+      <input id="importFile" type="file" accept="application/json,.json" style="display:none">
       <button id="printBtn">Print / PDF</button>
       <button id="resetBtn">Clear ticks</button>
     </span>
@@ -233,6 +253,9 @@
     <ul>
       <li>Use the <strong>✎ note</strong> box under any exercise — it saves locally and you can Export/Import to share.</li>
       <li>Or quote the ID chip: e.g. <code>W2-D3-E4</code> = Week 2, Day 3, exercise 4.</li>
+      <li>Weights are <strong>total</strong> by default — tick <strong>/side</strong> under a box when the number is per arm/leg (dumbbells, single-limb work).</li>
+      <li>Every exercise shows an <strong>Alt</strong> line — the same movement pattern on different equipment, for when the machine is taken or missing.</li>
+      <li>Tick <strong>Started</strong> at the top of a day to run a live timer; tick <strong>Finished</strong> at the bottom to freeze it and see the minutes spent.</li>
       <li>Examples: “W1-D1-E3 → change to 4 × 12 at 45s”, “W3-D2 replace E1 Pull-Up with assisted machine”, “swap Week 4 Day 3 deadlift for rack pulls”.</li>
       <li>Want different day names? Tell me the four and I'll swap them in.</li>
       <li>Once you're happy, I can export the same content to Word/PDF next to your other files.</li>
@@ -450,7 +473,7 @@ const WEEKS = [
           ["Incline Dumbbell Press","4","8–12","45–60s","+5 partial reps on last set"],
           ["Flat Machine Press","4","8–12","45–60s",""],
           ["Machine Chest Flye","7","10","30s","FST-7"],
-          ["Seated Barbell Shoulder Press","3","8–12","45–60s",""],
+          ["Standing Military Press","3","8–12","45–60s",""],
           ["Leaning Cable Lateral Raise","3","12–15","45–60s",""],
           ["Spider Curl","4","10–15","45–60s",""],
           ["Reverse-Grip Cable Curl","3","12–15","45–60s","Drop set on final set (*2)"],
@@ -532,6 +555,27 @@ function reviewerKey(){
 function tickKey(id){ return STORE_PREFIX + 'tick:' + reviewerKey() + ':' + id; }
 function kgKey(id){ return STORE_PREFIX + 'kg:' + reviewerKey() + ':' + id; }
 function maxKey(id){ return STORE_PREFIX + 'max:' + reviewerKey() + ':' + id; }
+function unitKey(id){ return STORE_PREFIX + 'unit:' + reviewerKey() + ':' + id; }
+function dayStartKey(d){ return STORE_PREFIX + 'daystart:' + reviewerKey() + ':' + d; }
+function dayDoneKey(d){ return STORE_PREFIX + 'daydone:' + reviewerKey() + ':' + d; }
+
+// Anything logged while the name box was empty lives under the anon id. The first time a
+// real name is entered, copy it all over so it FOLLOWS the name instead of vanishing.
+// Existing keys under the name always win; anon keys are kept so nothing can be lost.
+const MIGRATE_PFX = ['tick','kg','max','unit','daystart','daydone'];
+function migrateAnonData(newName){
+  if (!newName) return;
+  const anon = localStorage.getItem(STORE_PREFIX + 'anonid');
+  if (!anon) return;
+  MIGRATE_PFX.forEach(p => {
+    const from = STORE_PREFIX + p + ':' + anon + ':';
+    const to = STORE_PREFIX + p + ':' + newName.toLowerCase() + ':';
+    Object.keys(localStorage).filter(k => k.indexOf(from) === 0).forEach(k => {
+      const tgt = to + k.slice(from.length);
+      if (localStorage.getItem(tgt) === null) localStorage.setItem(tgt, localStorage.getItem(k));
+    });
+  });
+}
 
 // The "Last done" date field was removed — clear any dates stored by earlier versions.
 Object.keys(localStorage)
@@ -545,16 +589,23 @@ function parseKg(v){
 function fmtKg(n){ return String(Math.round(n * 10) / 10); }
 
 // Live comparison of Best kg against the locked Max: green PR when you match/beat it,
-// amber gap when below, grey when either side is missing.
+// amber gap when below, grey when either side is missing. Per-side rows show the number
+// doubled as "total" so the verdict always compares like with like.
+function isPerSide(row){
+  const cb = row.querySelector('.kgcell .sidecb');
+  return !!(cb && cb.checked);
+}
 function refreshKgCmp(row){
   const disp = row.querySelector('.kgcmp');
   if (!disp) return;
   const best = parseKg((row.querySelector('.kgcell input.kg') || {}).value);
   const mx = parseKg(localStorage.getItem(maxKey(row.id)));
+  const ps = isPerSide(row) ? '/s' : '';
+  const tot = v => isPerSide(row) ? ' · ' + fmtKg(v * 2) + ' tot' : '';
   if (mx === null){ disp.textContent = ''; disp.className = 'kgcmp'; return; }
-  if (best === null){ disp.textContent = 'max ' + fmtKg(mx); disp.className = 'kgcmp none'; return; }
-  if (best >= mx){ disp.textContent = 'PR ✓ ' + fmtKg(best); disp.className = 'kgcmp pr'; }
-  else { disp.textContent = 'max ' + fmtKg(mx) + ' (−' + fmtKg(mx - best) + ')'; disp.className = 'kgcmp below'; }
+  if (best === null){ disp.textContent = 'max ' + fmtKg(mx) + ps + tot(mx); disp.className = 'kgcmp none'; return; }
+  if (best >= mx){ disp.textContent = 'PR ✓ ' + fmtKg(best) + ps + tot(best); disp.className = 'kgcmp pr'; }
+  else { disp.textContent = 'max ' + fmtKg(mx) + ps + ' (−' + fmtKg(mx - best) + ')' + tot(mx); disp.className = 'kgcmp below'; }
 }
 
 // "Best kg" = highest weight used for this exercise. Datalist gives a dropdown of
@@ -569,6 +620,10 @@ function applyWeights(){
     if (inp) inp.value = localStorage.getItem(kgKey(r.id)) || '';
     const lock = r.querySelector('.lockbtn');
     if (lock) setLockState(lock, !!localStorage.getItem(maxKey(r.id)));
+    const scb = r.querySelector('.kgcell .sidecb');
+    if (scb) scb.checked = localStorage.getItem(unitKey(r.id)) === '1';
+    const slbl = r.querySelector('.kgcell .sidelbl');
+    if (slbl && scb) slbl.classList.toggle('on', scb.checked);
     refreshKgCmp(r);
   });
 }
@@ -578,7 +633,7 @@ function applyTicks(){
     const id = r.id;
     const on = localStorage.getItem(tickKey(id)) === '1';
     r.classList.toggle('done', on);
-    const cb = r.querySelector('input[type="checkbox"]');
+    const cb = r.querySelector('.keep input[type="checkbox"]');
     if (cb) cb.checked = on;
   });
 }
@@ -683,9 +738,12 @@ function notesCountText(all){
 const whoamiInput = document.getElementById('whoami');
 whoamiInput.value = localStorage.getItem(STORE_PREFIX + 'name') || '';
 whoamiInput.addEventListener('change', () => {
-  localStorage.setItem(STORE_PREFIX + 'name', whoamiInput.value.trim());
+  const nm = whoamiInput.value.trim();
+  localStorage.setItem(STORE_PREFIX + 'name', nm);
+  migrateAnonData(nm); // anything logged before a name was set now follows the name
   applyTicks(); // switching the name switches which private tick set you're viewing
   applyWeights(); // ...and which set of personal bests you're seeing
+  applyDayState(); // ...and the day timers
 });
 
 
@@ -699,7 +757,9 @@ document.getElementById('exportNotesBtn').addEventListener('click', () => {
     exported: new Date().toISOString(),
     notes: loadNotes(),
     weights: collectWeights(),
-    maxes: collectMaxes()
+    maxes: collectMaxes(),
+    units: collectUnits(),
+    days: collectDays()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -800,7 +860,99 @@ const MUSCLES = {
   "Box Squat":"quads & glutes",
   "Donkey Calf Raise":"calves",
   "Weighted Push-Up":"middle chest",
-  "Cable Curl 21s":"biceps"
+  "Cable Curl 21s":"biceps",
+  "Standing Military Press":"front shoulders"
+};
+
+// Alternative for every exercise: same movement pattern on different equipment — for when
+// the machine is taken, broken, or the gym doesn't have one.
+const ALTS = {
+  "Flat Barbell Bench Press":"Flat Dumbbell Press",
+  "Incline Machine Chest Press":"Incline Dumbbell Press",
+  "Cable Crossover":"Pec Deck Flye",
+  "Seated Dumbbell Shoulder Press":"Seated Barbell Shoulder Press",
+  "Cable Lateral Raise":"Dumbbell Lateral Raise",
+  "EZ-Bar Curl":"Dumbbell Curl",
+  "Hammer Curl":"Cable Hammer Curl (rope)",
+  "Cable Crunch":"Decline Sit-Up",
+  "V-Grip Lat Pulldown":"Assisted Pull-Up",
+  "Barbell Row":"Single-Arm Dumbbell Row",
+  "Seated Cable Row":"Chest-Supported Machine Row",
+  "Face Pull":"Cross-Body Cable Rear-Delt Fly",
+  "Barbell Shrug":"Dumbbell Shrug",
+  "Rope Triceps Pushdown":"Overhead Dumbbell Triceps Extension",
+  "Overhead Cable Triceps Extension":"Overhead Dumbbell Triceps Extension",
+  "Reverse Crunch":"Hanging Leg Raise",
+  "Deadlift":"Trap-Bar Deadlift",
+  "Leg Press":"Hack Squat",
+  "Lying Leg Curl":"Seated Leg Curl",
+  "Leg Extension":"Sissy Squat",
+  "Walking Lunge":"Bulgarian Split Squat",
+  "Standing Calf Raise":"Seated Calf Raise",
+  "Back Hyperextension":"Good Morning",
+  "Incline Dumbbell Press":"Incline Barbell Press",
+  "Neutral-Grip Lat Pulldown":"Assisted Pull-Up",
+  "Cable Curl":"Dumbbell Curl",
+  "Incline walk or bike":"Rowing machine (steady state)",
+  "Incline Barbell Press":"Incline Dumbbell Press",
+  "Plate-Loaded Machine Chest Press":"Flat Dumbbell Press",
+  "Pec Deck Flye":"Dumbbell Flye (flat bench)",
+  "Machine Shoulder Press":"Seated Dumbbell Shoulder Press",
+  "Dumbbell Lateral Raise":"Cable Lateral Raise",
+  "Preacher Curl":"Incline Dumbbell Curl",
+  "Incline Dumbbell Curl":"Cable Curl",
+  "Hanging Leg Raise":"Captain's Chair Leg Raise",
+  "Wide-Grip Lat Pulldown":"Wide-Grip Pull-Up (assisted)",
+  "Single-Arm Dumbbell Row":"Chest-Supported Machine Row",
+  "T-Bar Row":"Barbell Row",
+  "Reverse Pec-Deck":"Cross-Body Cable Rear-Delt Fly",
+  "Dumbbell Shrug":"Barbell Shrug",
+  "EZ-Bar Skull Crusher":"Overhead Dumbbell Triceps Extension",
+  "Close-Grip Bench Press":"Diamond Push-Up",
+  "Back Squat":"Hack Squat",
+  "Romanian Deadlift":"Dumbbell Romanian Deadlift",
+  "Hack Squat":"Leg Press",
+  "Seated Leg Curl":"Lying Leg Curl",
+  "Hip Thrust":"Barbell Glute Bridge (floor)",
+  "Seated Calf Raise":"Standing Calf Raise",
+  "Reverse Hyperextension":"Back Hyperextension",
+  "Plank":"Dead Bug",
+  "Machine Chest Press":"Flat Dumbbell Press",
+  "Spider Curl":"Concentration Curl",
+  "Reverse-Grip Cable Curl":"Barbell Reverse Curl",
+  "Flat Dumbbell Press":"Flat Barbell Bench Press",
+  "Flat Machine Press":"Flat Dumbbell Press",
+  "Low-to-High Cable Flye":"Incline Dumbbell Flye",
+  "Incline Cable Flye":"Incline Dumbbell Flye",
+  "Arnold Press":"Seated Dumbbell Shoulder Press",
+  "Machine Lateral Raise":"Dumbbell Lateral Raise",
+  "Concentration Curl":"Seated Dumbbell Curl",
+  "Ab Rollout":"Stability Ball Rollout",
+  "Pull-Up":"Lat Pulldown (wide grip)",
+  "Chest-Supported Machine Row":"Seated Cable Row",
+  "Straight-Arm Cable Pullover":"Dumbbell Pullover",
+  "Cross-Body Cable Rear-Delt Fly":"Reverse Pec-Deck",
+  "Machine Shrug":"Dumbbell Shrug",
+  "Overhead Rope Extension":"Overhead Dumbbell Triceps Extension",
+  "Reverse-Grip Pushdown":"Dumbbell Triceps Kickback",
+  "Trap-Bar Deadlift":"Conventional Deadlift",
+  "Bulgarian Split Squat":"Goblet Split Squat (rear foot down)",
+  "Leg Press (feet high)":"Romanian Deadlift",
+  "45° Back Extension":"Stability Ball Back Extension",
+  "Pec Deck":"Cable Crossover",
+  "Machine Chest Flye":"Dumbbell Flye (flat bench)",
+  "Leaning Cable Lateral Raise":"Dumbbell Lateral Raise",
+  "Wide-Grip Seated Cable Row":"T-Bar Row",
+  "High Rope Face Pull":"Reverse Pec-Deck",
+  "Behind-the-Back Barbell Shrug":"Dumbbell Shrug",
+  "Sumo Deadlift":"Trap-Bar Deadlift",
+  "Box Squat":"Back Squat",
+  "Donkey Calf Raise":"Standing Calf Raise",
+  "Weighted Push-Up":"Feet-Elevated Push-Up",
+  "Cable Curl 21s":"EZ-Bar Curl 21s",
+  "Standing Military Press":"Seated Dumbbell Shoulder Press",
+  "Reverse-Grip Barbell Row":"Chest-Supported Machine Row",
+  "Single-Arm Overhead Cable Extension":"Single-Arm Overhead Dumbbell Extension"
 };
 
 const panels = document.getElementById('panels');
@@ -812,6 +964,46 @@ function slug(name){
 function videoLink(name){
   return 'https://www.youtube.com/results?search_query=' +
     encodeURIComponent(slug(name) + ' form technique');
+}
+
+// Day start/finish: ticking Started records the time and runs a live timer at the top of
+// the day; ticking Finished freezes it into a total-minutes readout. Both survive reloads.
+const dayTimers = {}; // dayId -> interval id
+const dayCtl = {};    // dayId -> {start, done, spans}
+function fmtElapsed(ms){
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
+  const p = n => String(n).padStart(2, '0');
+  return (h ? h + ':' + p(m) : p(m)) + ':' + p(ss);
+}
+function updDayTime(dayId){
+  const c = dayCtl[dayId];
+  if (!c) return;
+  const st = parseInt(localStorage.getItem(dayStartKey(dayId)) || '0', 10);
+  const dn = parseInt(localStorage.getItem(dayDoneKey(dayId)) || '0', 10);
+  let txt = '';
+  if (st && dn){
+    const mins = Math.round((dn - st) / 60000);
+    txt = '✓ done · ' + (mins < 1 ? 'under 1 min' : mins + ' min');
+  } else if (st){
+    txt = '⏱ ' + fmtElapsed(Date.now() - st);
+  }
+  c.spans.forEach(sp => { sp.textContent = txt; });
+}
+function setDayTimer(dayId, on){
+  if (on && !dayTimers[dayId]) dayTimers[dayId] = setInterval(() => updDayTime(dayId), 1000);
+  if (!on && dayTimers[dayId]){ clearInterval(dayTimers[dayId]); delete dayTimers[dayId]; }
+}
+function applyDayState(){
+  Object.keys(dayCtl).forEach(dayId => {
+    const c = dayCtl[dayId];
+    const hasStart = !!localStorage.getItem(dayStartKey(dayId));
+    const hasDone = !!localStorage.getItem(dayDoneKey(dayId));
+    c.start.checked = hasStart;
+    c.done.checked = hasDone;
+    setDayTimer(dayId, hasStart && !hasDone);
+    updDayTime(dayId);
+  });
 }
 
 WEEKS.forEach((week, wi) => {
@@ -853,6 +1045,59 @@ WEEKS.forEach((week, wi) => {
     warm.textContent = day.warm;
     body.appendChild(warm);
 
+    // Top strip: Started tick + live timer. Bottom strip (after the rows): Finished tick.
+    const startCb = document.createElement('input');
+    startCb.type = 'checkbox';
+    startCb.className = 'startcb';
+    startCb.title = 'Tick when you begin this workout — starts the timer';
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'daytime';
+    const ctl = document.createElement('div');
+    ctl.className = 'dayctl';
+    const lab = document.createElement('label');
+    lab.append(startCb, document.createTextNode(' Started'));
+    ctl.append(lab, timeSpan);
+    body.appendChild(ctl);
+
+    const doneCb = document.createElement('input');
+    doneCb.type = 'checkbox';
+    doneCb.className = 'donecb';
+    doneCb.title = 'Tick when you finish — freezes the timer and shows the minutes spent';
+    const endSpan = document.createElement('span');
+    endSpan.className = 'daytime';
+    const ctl2 = document.createElement('div');
+    ctl2.className = 'dayctl end';
+    const lab2 = document.createElement('label');
+    lab2.append(doneCb, document.createTextNode(' Finished'));
+    ctl2.append(lab2, endSpan);
+
+    dayCtl[dayId] = { start: startCb, done: doneCb, spans: [timeSpan, endSpan] };
+    startCb.addEventListener('change', () => {
+      if (startCb.checked){
+        if (!localStorage.getItem(dayStartKey(dayId)))
+          localStorage.setItem(dayStartKey(dayId), String(Date.now()));
+      } else {
+        // un-starting resets the whole session for that day
+        localStorage.removeItem(dayStartKey(dayId));
+        localStorage.removeItem(dayDoneKey(dayId));
+        doneCb.checked = false;
+      }
+      applyDayState();
+    });
+    doneCb.addEventListener('change', () => {
+      if (doneCb.checked){
+        const now = String(Date.now());
+        if (!localStorage.getItem(dayStartKey(dayId))){
+          localStorage.setItem(dayStartKey(dayId), now); // finishing without starting implies start=now
+          startCb.checked = true;
+        }
+        localStorage.setItem(dayDoneKey(dayId), now);
+      } else {
+        localStorage.removeItem(dayDoneKey(dayId));
+      }
+      applyDayState();
+    });
+
     day.ex.forEach((e, ei) => {
       const [name, sets, reps, rest, note] = e;
       const id = 'W' + (wi+1) + '-D' + (di+1) + '-E' + (ei+1);
@@ -889,6 +1134,20 @@ WEEKS.forEach((week, wi) => {
         n.textContent = note;
         ex.appendChild(n);
       }
+      if (ALTS[name]) {
+        const alt = document.createElement('div');
+        alt.className = 'alt';
+        alt.title = 'Do this instead if the machine/equipment is unavailable';
+        const ab = document.createElement('b');
+        ab.textContent = 'Alt';
+        const la = document.createElement('a');
+        la.href = videoLink(ALTS[name]);
+        la.target = '_blank';
+        la.rel = 'noopener';
+        la.textContent = ALTS[name] + ' ▶';
+        alt.append(ab, la);
+        ex.appendChild(alt);
+      }
 
       const nbtn = document.createElement('button');
       nbtn.className = 'notebtn';
@@ -912,7 +1171,7 @@ WEEKS.forEach((week, wi) => {
       ki.setAttribute('inputmode', 'decimal');
       ki.setAttribute('autocomplete', 'off');
       ki.value = localStorage.getItem(kgKey(id)) || '';
-      ki.addEventListener('change', () => { wt(ki, id); refreshKgCmp(row); });
+      ki.addEventListener('input', () => { wt(ki, id); refreshKgCmp(row); }); // save every keystroke
       kg.appendChild(ki);
 
       // Lock button: saves the current Best kg as your personal Max benchmark.
@@ -934,6 +1193,23 @@ WEEKS.forEach((week, wi) => {
         refreshKgCmp(row);
       });
       kg.appendChild(lockBtn);
+
+      // Per-side tick: dumbbell / single-limb work — the number in the box is ONE side.
+      const slbl = document.createElement('label');
+      slbl.className = 'sidelbl';
+      slbl.title = 'Tick if this weight is per side (each arm/leg) — the comparison doubles it';
+      const scb = document.createElement('input');
+      scb.type = 'checkbox';
+      scb.className = 'sidecb';
+      scb.checked = localStorage.getItem(unitKey(id)) === '1';
+      scb.addEventListener('change', () => {
+        if (scb.checked) localStorage.setItem(unitKey(id), '1'); else localStorage.removeItem(unitKey(id));
+        slbl.classList.toggle('on', scb.checked);
+        refreshKgCmp(row);
+      });
+      slbl.classList.toggle('on', scb.checked);
+      slbl.append(scb, document.createTextNode('/side'));
+      kg.appendChild(slbl);
 
       const cmp = document.createElement('div');
       cmp.className = 'kgcmp';
@@ -972,6 +1248,7 @@ WEEKS.forEach((week, wi) => {
       refreshBadge(id);
     });
 
+    body.appendChild(ctl2); // Finished strip at the end of the day
     panel.appendChild(card);
   });
   panels.appendChild(panel);
@@ -986,6 +1263,7 @@ function select(i){
   window.scrollTo({top:0, behavior:'smooth'});
 }
 select(0);
+applyDayState(); // restore any running timers / done totals after a reload
 
 // Populate the shared weight dropdown: 1–100 in 1s, then 102.5–250 in 2.5s.
 (function(){
@@ -1019,6 +1297,24 @@ function collectMaxes(){
   return out;
 }
 
+function collectUnits(){
+  const out = {};
+  document.querySelectorAll('.row').forEach(r => {
+    if (localStorage.getItem(unitKey(r.id))) out[r.id] = '1';
+  });
+  return out;
+}
+
+function collectDays(){
+  const out = {};
+  Object.keys(dayCtl).forEach(d => {
+    const st = localStorage.getItem(dayStartKey(d));
+    const dn = localStorage.getItem(dayDoneKey(d));
+    if (st || dn) out[d] = { start: st || '', done: dn || '' };
+  });
+  return out;
+}
+
 function setLockState(btn, on){
   btn.classList.toggle('on', on);
   btn.textContent = on ? '🔒 Max' : 'Set max';
@@ -1043,8 +1339,52 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   Object.keys(localStorage).filter(k => k.startsWith(pfx)).forEach(k => localStorage.removeItem(k));
   document.querySelectorAll('.row').forEach(r => {
     r.classList.remove('done');
-    const cb = r.querySelector('input[type="checkbox"]'); if (cb) cb.checked = false;
+    const cb = r.querySelector('.keep input[type="checkbox"]'); if (cb) cb.checked = false;
   });
+});
+
+// Import an exported JSON: fills weights, maxes, per-side ticks, day times and notes for
+// the CURRENT reviewer. Notes merge (duplicates skipped); everything else overwrites.
+document.getElementById('importBtn').addEventListener('click', () =>
+  document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', function(){
+  const f = this.files && this.files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const d = JSON.parse(rd.result);
+      let nw = 0, nmx = 0, nu = 0, nd = 0, nn = 0;
+      const w = d.weights || {};
+      Object.keys(w).forEach(id => { localStorage.setItem(kgKey(id), String(w[id])); nw++; });
+      const m = d.maxes || {};
+      Object.keys(m).forEach(id => { localStorage.setItem(maxKey(id), String(m[id])); nmx++; });
+      const u = d.units || {};
+      Object.keys(u).forEach(id => { if (u[id]){ localStorage.setItem(unitKey(id), '1'); nu++; } });
+      const days = d.days || {};
+      Object.keys(days).forEach(day => {
+        if (days[day].start){ localStorage.setItem(dayStartKey(day), String(days[day].start)); nd++; }
+        if (days[day].done) localStorage.setItem(dayDoneKey(day), String(days[day].done));
+      });
+      const n = d.notes || {};
+      const cur = loadNotes();
+      Object.keys(n).forEach(id => {
+        cur[id] = cur[id] || [];
+        n[id].forEach(it => {
+          const dup = cur[id].some(x => x.who === it.who && x.text === it.text && x.ts === it.ts);
+          if (!dup){ cur[id].push(it); nn++; }
+        });
+      });
+      saveNotes(cur);
+      applyWeights();
+      applyDayState();
+      Object.keys(cur).forEach(id => refreshBadge(id));
+      alert('Imported ' + nw + ' weights, ' + nmx + ' maxes, ' + nu + ' per-side ticks, ' +
+            nd + ' day times, ' + nn + ' notes.');
+    } catch(e){ alert('Could not import: not a valid export file.'); }
+  };
+  rd.readAsText(f);
+  this.value = '';
 });
 </script>
 </body>
