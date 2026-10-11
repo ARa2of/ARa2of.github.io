@@ -128,8 +128,8 @@
   .kgcell .lockbtn:hover{border-color:var(--accent); color:var(--accent)}
   .kgcell .lockbtn.on{background:var(--accent-soft); border-color:#9fd6cc; color:#0b5c51; font-weight:700}
   .kgcombo{flex:1 1 28px; min-width:0; display:flex; flex-direction:column; gap:1px; align-items:center}
-  .kgcombo input{width:100%; font:600 10.5px ui-monospace,Consolas,monospace; color:var(--ink);
-    background:#fff; border:1px solid var(--line); border-radius:5px; padding:1px 0;
+  .kgcombo input{width:100%; font:600 13px ui-monospace,Consolas,monospace; color:var(--ink);
+    background:#fff; border:1px solid var(--line); border-radius:5px; padding:4px 0;
     text-align:center; font-variant-numeric:tabular-nums}
   .kgcombo input::placeholder{color:#9aa7b3; font-weight:400}
   .kgcombo input:focus{outline:1px solid var(--accent)}
@@ -179,7 +179,7 @@
     .idx{grid-area:i} .ex{grid-area:e} .keep{grid-area:k} .kgcell{grid-area:g}
     .kgcell input{font-size:16px; flex:1 1 70px; max-width:120px} /* 16px stops iOS zoom-on-focus */
     .kgcombo{flex:1 1 30px}
-    .kgcombo input{font-size:14px; max-width:none}
+    .kgcombo input{font-size:16px; max-width:none}
     .sets{grid-area:s; padding-top:5px} .rest{grid-area:r; padding-top:2px}
 
     /* Header + toolbar: let everything wrap so buttons never overflow */
@@ -539,6 +539,23 @@ const STORE_PREFIX = 'raouf4wk:';
 const COMBO_VARS = [['lohi', 'low→high'], ['mid', 'mid'], ['hilo', 'high→low']];
 function comboMaxKeys(id){ return COMBO_VARS.map(([vs]) => maxKey(id) + ':' + vs); }
 function comboMaxed(id){ return comboMaxKeys(id).every(k => localStorage.getItem(k)); }
+function comboStatus(cInputs, id){
+  const gl = ['↑', '→', '↓']; // order matches: low→high / mid / high→low
+  let any = false;
+  const segs = COMBO_VARS.map(([vs], i) => {
+    const mx = parseKg(localStorage.getItem(maxKey(id) + ':' + vs));
+    if (mx === null) return '';
+    any = true;
+    const best = parseKg(cInputs[i].value);
+    return (best !== null && best >= mx) ? gl[i] + ' PR ' + fmtKg(best) : gl[i] + ' ' + fmtKg(mx);
+  });
+  return any ? segs.join('  ') : '';
+}
+function refreshComboCmp(cInputs, id, disp){
+  const txt = comboStatus(cInputs, id);
+  disp.textContent = txt;
+  disp.classList.toggle('pr', /PR/.test(txt));
+}
 
 function loadNotes(){
   try { return JSON.parse(localStorage.getItem(STORE_PREFIX + 'notes') || '{}'); }
@@ -632,6 +649,8 @@ function applyWeights(){
       combo.forEach(inp => inp.value = localStorage.getItem(kgKey(r.id) + ':' + inp.getAttribute('data-var')) || '');
       const cmx = r.querySelector('.cmaxbtn');
       if (cmx) setLockState(cmx, comboMaxed(r.id));
+      const ccmp = r.querySelector('.kgcmp');
+      if (ccmp) refreshComboCmp(Array.from(combo), r.id, ccmp);
       return; // combo rows have their own per-variation boxes (no side/max compare)
     }
     const inp = r.querySelector('.kgcell input.kg');
@@ -1214,6 +1233,7 @@ WEEKS.forEach((week, wi) => {
       if (name === 'Standing Cable Flye Combo'){
         // Three compact weight boxes — one per flye variation (low→high / mid / high→low).
         const cInputs = [];
+        let ccmp;
         COMBO_VARS.forEach(([vs, lbl]) => {
           const wrap = document.createElement('div');
           wrap.className = 'kgcombo';
@@ -1230,6 +1250,7 @@ WEEKS.forEach((week, wi) => {
           ki.addEventListener('input', () => {
             if (ki.value.trim()) localStorage.setItem(kgKey(id) + ':' + vs, ki.value.trim());
             else localStorage.removeItem(kgKey(id) + ':' + vs);
+            if (ccmp) refreshComboCmp(cInputs, id, ccmp);
           });
           wrap.appendChild(ki);
           cInputs.push(ki);
@@ -1258,8 +1279,15 @@ WEEKS.forEach((week, wi) => {
             });
             setLockState(cmax, comboMaxed(id));
           }
+          if (ccmp) refreshComboCmp(cInputs, id, ccmp);
         });
         kg.appendChild(cmax);
+
+        // Max/PR readout under the boxes — arrow shows which variation (↑ low→high / → mid / ↓ high→low).
+        ccmp = document.createElement('div');
+        ccmp.className = 'kgcmp';
+        kg.appendChild(ccmp);
+        refreshComboCmp(cInputs, id, ccmp);
       } else {
         const ki = document.createElement('input');
         ki.type = 'text';
