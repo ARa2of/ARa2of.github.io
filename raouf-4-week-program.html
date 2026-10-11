@@ -127,14 +127,13 @@
   }
   .kgcell .lockbtn:hover{border-color:var(--accent); color:var(--accent)}
   .kgcell .lockbtn.on{background:var(--accent-soft); border-color:#9fd6cc; color:#0b5c51; font-weight:700}
-  .kgcombo{flex:1 1 28px; min-width:0; display:flex; flex-direction:column; gap:1px; align-items:center}
-  .kgcombo input{width:100%; font:600 13px ui-monospace,Consolas,monospace; color:var(--ink);
-    background:#fff; border:1px solid var(--line); border-radius:5px; padding:4px 0;
-    text-align:center; font-variant-numeric:tabular-nums}
-  .kgcombo input::placeholder{color:#9aa7b3; font-weight:400}
-  .kgcombo input:focus{outline:1px solid var(--accent)}
-  .kgcombo .kgvarlbl{font:9px/1 ui-monospace,Consolas,monospace; color:#7c8b99; white-space:nowrap}
-  .cmaxbtn{font-size:10.5px; padding:2px 5px}
+  .kgcombo{flex:1 1 36px; min-width:0; display:flex; flex-direction:column; gap:2px; align-items:center}
+  .kgcombo input{flex:0 0 auto; width:100%; padding-left:1px; padding-right:1px; text-align:center}
+  .kgvarlbl{font:600 10px/1 ui-monospace,Consolas,monospace; color:#4a5967; white-space:nowrap; text-align:center}
+  .kgcpr{font:600 9px/1.1 ui-monospace,Consolas,monospace; color:#0b7a5f; white-space:nowrap; text-align:center; min-height:10px}
+  .comboctl{flex:1 1 100%; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:3px}
+  .kgside{font:600 10px/1 ui-monospace,Consolas,monospace; color:#0b5c51; white-space:nowrap}
+  .cmaxbtn{font-size:10px; padding:2px 6px}
   .kgcmp{flex:1 1 100%; font:10.5px/1.3 ui-monospace, Consolas, monospace; text-align:center; white-space:nowrap}
   .sidelbl{display:flex; align-items:center; gap:4px; font:11px/1 ui-monospace, Consolas, monospace;
     color:#7c8b99; cursor:pointer; user-select:none; flex:1 1 100%; padding:1px 2px}
@@ -178,7 +177,7 @@
     .row{grid-template-columns:30px 1fr 22px; grid-template-areas:"i e k" ". s ." ". g ." ". r ."}
     .idx{grid-area:i} .ex{grid-area:e} .keep{grid-area:k} .kgcell{grid-area:g}
     .kgcell input{font-size:16px; flex:1 1 70px; max-width:120px} /* 16px stops iOS zoom-on-focus */
-    .kgcombo{flex:1 1 30px}
+    .kgcombo{flex:1 1 34px}
     .kgcombo input{font-size:16px; max-width:none}
     .sets{grid-area:s; padding-top:5px} .rest{grid-area:r; padding-top:2px}
 
@@ -536,25 +535,27 @@ const WEEKS = [
 const STORE_PREFIX = 'raouf4wk:';
 
 // Standing Cable Flye Combo rows track three separate weights, one per angle variation.
-const COMBO_VARS = [['lohi', 'low→high'], ['mid', 'mid'], ['hilo', 'high→low']];
+const COMBO_VARS = [
+  ['lohi', 'low', 'low→high'],
+  ['mid', 'mid', 'mid'],
+  ['hilo', 'high', 'high→low']
+];
 function comboMaxKeys(id){ return COMBO_VARS.map(([vs]) => maxKey(id) + ':' + vs); }
 function comboMaxed(id){ return comboMaxKeys(id).every(k => localStorage.getItem(k)); }
-function comboStatus(cInputs, id){
-  const gl = ['↑', '→', '↓']; // order matches: low→high / mid / high→low
-  let any = false;
-  const segs = COMBO_VARS.map(([vs], i) => {
+function refreshComboCmp(cInputs, id, cprEls){
+  COMBO_VARS.forEach(([vs], i) => {
+    const el = cprEls[i];
+    if (!el) return;
     const mx = parseKg(localStorage.getItem(maxKey(id) + ':' + vs));
-    if (mx === null) return '';
-    any = true;
     const best = parseKg(cInputs[i].value);
-    return (best !== null && best >= mx) ? gl[i] + ' PR ' + fmtKg(best) : gl[i] + ' ' + fmtKg(mx);
+    let txt = '', on = false;
+    if (mx !== null){
+      if (best !== null && best >= mx){ txt = 'PR ' + fmtKg(best); on = true; }
+      else txt = 'max ' + fmtKg(mx);
+    }
+    el.textContent = txt;
+    el.classList.toggle('pr', on);
   });
-  return any ? segs.join('  ') : '';
-}
-function refreshComboCmp(cInputs, id, disp){
-  const txt = comboStatus(cInputs, id);
-  disp.textContent = txt;
-  disp.classList.toggle('pr', /PR/.test(txt));
 }
 
 function loadNotes(){
@@ -649,8 +650,8 @@ function applyWeights(){
       combo.forEach(inp => inp.value = localStorage.getItem(kgKey(r.id) + ':' + inp.getAttribute('data-var')) || '');
       const cmx = r.querySelector('.cmaxbtn');
       if (cmx) setLockState(cmx, comboMaxed(r.id));
-      const ccmp = r.querySelector('.kgcmp');
-      if (ccmp) refreshComboCmp(Array.from(combo), r.id, ccmp);
+      const cprs = r.querySelectorAll('.kgcombo .kgcpr');
+      if (cprs.length) refreshComboCmp(Array.from(combo), r.id, Array.from(cprs));
       return; // combo rows have their own per-variation boxes (no side/max compare)
     }
     const inp = r.querySelector('.kgcell input.kg');
@@ -1231,10 +1232,10 @@ WEEKS.forEach((week, wi) => {
       const kg = document.createElement('div');
       kg.className = 'kgcell';
       if (name === 'Standing Cable Flye Combo'){
-        // Three compact weight boxes — one per flye variation (low→high / mid / high→low).
+        // Three aligned columns — one per flye variation (low→high / mid / high→low).
         const cInputs = [];
-        let ccmp;
-        COMBO_VARS.forEach(([vs, lbl]) => {
+        const cprEls = [];
+        COMBO_VARS.forEach(([vs, short, full]) => {
           const wrap = document.createElement('div');
           wrap.className = 'kgcombo';
           const ki = document.createElement('input');
@@ -1242,26 +1243,32 @@ WEEKS.forEach((week, wi) => {
           ki.className = 'kg';
           ki.setAttribute('list', 'kglist');
           ki.setAttribute('data-var', vs);
-          ki.setAttribute('placeholder', lbl);
-          ki.title = lbl + ' weight (kg)';
+          ki.setAttribute('placeholder', 'kg');
+          ki.title = full + ' — weight per side (kg)';
           ki.setAttribute('inputmode', 'decimal');
           ki.setAttribute('autocomplete', 'off');
           ki.value = localStorage.getItem(kgKey(id) + ':' + vs) || '';
           ki.addEventListener('input', () => {
             if (ki.value.trim()) localStorage.setItem(kgKey(id) + ':' + vs, ki.value.trim());
             else localStorage.removeItem(kgKey(id) + ':' + vs);
-            if (ccmp) refreshComboCmp(cInputs, id, ccmp);
+            refreshComboCmp(cInputs, id, cprEls);
           });
           wrap.appendChild(ki);
           cInputs.push(ki);
           const la = document.createElement('div');
           la.className = 'kgvarlbl';
-          la.textContent = lbl;
+          la.textContent = short;
           wrap.appendChild(la);
+          const mx = document.createElement('div');
+          mx.className = 'kgcpr';
+          wrap.appendChild(mx);
+          cprEls.push(mx);
           kg.appendChild(wrap);
         });
 
-        // One Set Max lock: stores a max for all three variations in a single click.
+        // Control row: Set Max for all three in one click + a per-side note.
+        const cctl = document.createElement('div');
+        cctl.className = 'comboctl';
         const cmax = document.createElement('button');
         cmax.type = 'button';
         cmax.className = 'lockbtn cmaxbtn';
@@ -1279,15 +1286,13 @@ WEEKS.forEach((week, wi) => {
             });
             setLockState(cmax, comboMaxed(id));
           }
-          if (ccmp) refreshComboCmp(cInputs, id, ccmp);
+          refreshComboCmp(cInputs, id, cprEls);
         });
-        kg.appendChild(cmax);
-
-        // Max/PR readout under the boxes — arrow shows which variation (↑ low→high / → mid / ↓ high→low).
-        ccmp = document.createElement('div');
-        ccmp.className = 'kgcmp';
-        kg.appendChild(ccmp);
-        refreshComboCmp(cInputs, id, ccmp);
+        const side = document.createElement('span');
+        side.className = 'kgside';
+        side.textContent = 'per side';
+        cctl.append(cmax, side);
+        kg.appendChild(cctl);
       } else {
         const ki = document.createElement('input');
         ki.type = 'text';
