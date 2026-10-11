@@ -127,6 +127,13 @@
   }
   .kgcell .lockbtn:hover{border-color:var(--accent); color:var(--accent)}
   .kgcell .lockbtn.on{background:var(--accent-soft); border-color:#9fd6cc; color:#0b5c51; font-weight:700}
+  .kgcombo{flex:1 1 46px; min-width:0; display:flex; flex-direction:column; gap:2px; align-items:center}
+  .kgcombo input{width:100%; font:600 12px ui-monospace,Consolas,monospace; color:var(--ink);
+    background:#fff; border:1px solid var(--line); border-radius:6px; padding:3px 2px;
+    text-align:center; font-variant-numeric:tabular-nums}
+  .kgcombo input::placeholder{color:#9aa7b3; font-weight:400}
+  .kgcombo input:focus{outline:1px solid var(--accent)}
+  .kgvarlbl{font:9.5px/1 ui-monospace,Consolas,monospace; color:#7c8b99; white-space:nowrap}
   .kgcmp{flex:1 1 100%; font:10.5px/1.3 ui-monospace, Consolas, monospace; text-align:center; white-space:nowrap}
   .sidelbl{display:flex; align-items:center; gap:4px; font:11px/1 ui-monospace, Consolas, monospace;
     color:#7c8b99; cursor:pointer; user-select:none; flex:1 1 100%; padding:1px 2px}
@@ -170,6 +177,8 @@
     .row{grid-template-columns:30px 1fr 22px; grid-template-areas:"i e k" ". s ." ". g ." ". r ."}
     .idx{grid-area:i} .ex{grid-area:e} .keep{grid-area:k} .kgcell{grid-area:g}
     .kgcell input{font-size:16px; flex:1 1 70px; max-width:120px} /* 16px stops iOS zoom-on-focus */
+    .kgcombo{flex:1 1 46px}
+    .kgcombo input{font-size:16px; max-width:none}
     .sets{grid-area:s; padding-top:5px} .rest{grid-area:r; padding-top:2px}
 
     /* Header + toolbar: let everything wrap so buttons never overflow */
@@ -284,7 +293,7 @@ const WEEKS = [
         ex: [
           ["Standing Cable Flye Combo","6","8–12","45–60s","2× low→high / 2× mid / 2× high→low · superset Push-Up to failure"],
           ["Incline Machine Chest Press","4","8–12","45–60s",""],
-          ["Cable Crossover","7","10","30s","FST-7 — focus and squeeze"],
+          ["Seated Dips","3","8–12","45–60s",""],
           ["Seated Dumbbell Shoulder Press","3","8–12","45–60s",""],
           ["Cable Lateral Raise","3","12–15","45–60s",""],
           ["EZ-Bar Curl","4","10–15","45–60s",""],
@@ -313,7 +322,6 @@ const WEEKS = [
         warm: "Warm-up: bodyweight squats, band pull-aparts, hyperextensions — 3 rounds / 10 / 30s + 5 min bike",
         ex: [
           ["Deadlift","4","6–8","60–90s","Main lower-back lift"],
-          ["Leg Press","4","8–12","45–60s",""],
           ["Lying Leg Curl","4","8–12","45–60s",""],
           ["Leg Extension","7","10","30s","FST-7"],
           ["Walking Lunge","3","10–12 / leg","45–60s",""],
@@ -327,12 +335,12 @@ const WEEKS = [
         title: "Optional Mix — Arms, Pump &amp; Conditioning",
         warm: "Warm-up: push-ups, band pull-aparts, arm circles — 3 rounds / 10 / 30s",
         ex: [
-          ["Incline Dumbbell Press","3","10–12","45–60s",""],
+          ["Single-Arm Cable Chest Press","3","10–12","45–60s",""],
           ["Neutral-Grip Lat Pulldown","3","10–12","45–60s",""],
           ["Farmer Walk","3","40s carry / side","45–60s","Core & grip finisher"],
           ["Cable Curl","3","12–15","45–60s","Superset with Reverse-Grip Pushdown (*3)"],
           ["Pallof Press","3","10–12 / side","45–60s","Anti-rotation core"],
-          ["Cable Wood Chop","3","10–12 / side","45–60s","Standing anti-rotation core"],
+          ["Spider Lateral Raise","3","12–15","45–60s",""],
           ["Incline walk or bike","1","10 min","—","Skip if short on time"]
         ]
       }
@@ -348,7 +356,6 @@ const WEEKS = [
         ex: [
           ["Standing Cable Flye Combo","9","8–12","45–60s","3× low→high / 3× mid / 3× high→low"],
           ["Plate-Loaded Machine Chest Press","4","8–12","45–60s","+5 partial reps on last set"],
-          ["Pec Deck Flye","7","10","30s","FST-7 — focus on squeeze"],
           ["Machine Shoulder Press","3","8–12","45–60s",""],
           ["Dumbbell Lateral Raise","3","12–15","45–60s","Drop set on final set (*2)"],
           ["Preacher Curl","4","10–15","45–60s",""],
@@ -380,7 +387,6 @@ const WEEKS = [
           ["Romanian Deadlift","4","8–12","45–60s",""],
           ["Hack Squat","4","8–12","45–60s",""],
           ["Seated Leg Curl","7","10","30s","FST-7"],
-          ["Hip Thrust","3","8–12","45–60s",""],
           ["Seated Calf Raise","4","12–15","45–60s",""],
           ["Reverse Hyperextension","3","12–15","45–60s",""],
           ["Plank","3","60s hold","45–60s",""]
@@ -396,7 +402,8 @@ const WEEKS = [
           ["Suitcase Carry","3","40s / side","45–60s","Core & grip finisher"],
           ["Hammer Curl","3","12–15","45–60s","Superset with Rope Pushdown (*3)"],
           ["Sled Push","3","1 lap","45–60s","Conditioning finisher"],
-          ["Cable Wood Chop","3","10–12 / side","45–60s","Standing anti-rotation core"]
+          ["Cable Wood Chop","3","10–12 / side","45–60s","Standing anti-rotation core"],
+          ["Spider Lateral Raise","3","12–15","45–60s",""]
         ]
       }
     ]
@@ -410,8 +417,7 @@ const WEEKS = [
         warm: "Warm-up: push-ups, band pull-aparts, jumping jacks — 3 rounds / 10 / 30s + 5 min bike",
         ex: [
           ["Standing Cable Flye Combo","6","8–12","45–60s","2× low→high / 2× mid / 2× high→low · +5 partial reps on last set"],
-          ["Low-to-High Cable Flye","4","12–15","45–60s",""],
-          ["Incline Cable Flye","7","10","30s","FST-7"],
+          ["Seated Dips","4","8–12","45–60s",""],
           ["Arnold Press","3","10–12","45–60s","Light–medium weight"],
           ["Machine Lateral Raise","3","12–15","45–60s",""],
           ["Cable Curl","4","12–15","45–60s",""],
@@ -441,7 +447,6 @@ const WEEKS = [
         ex: [
           ["Trap-Bar Deadlift","4","6–8","60–90s","Main lower-back lift"],
           ["Bulgarian Split Squat","4","8–12 / leg","45–60s",""],
-          ["Leg Press (feet high)","4","10–12","45–60s",""],
           ["Lying Leg Curl","7","10","30s","FST-7"],
           ["Leg Extension","3","12–15","45–60s",""],
           ["Standing Calf Raise","4","12–15","45–60s",""],
@@ -456,7 +461,7 @@ const WEEKS = [
         ex: [
           ["Pec Deck","3","12–15","45–60s",""],
           ["Farmer Walk","3","40s carry / side","45–60s","Core & grip finisher"],
-          ["Pallof Press","3","10–12 / side","45–60s","Anti-rotation core"],
+          ["Spider Lateral Raise","3","12–15","45–60s",""],
           ["Preacher Curl","3","12–15","45–60s","Superset with Overhead Rope Extension (*3)"],
           ["Barbell Shrug","3","12–15","45–60s",""],
           ["Cable Wood Chop","3","10–12 / side","45–60s","Standing anti-rotation core"]
@@ -474,7 +479,6 @@ const WEEKS = [
         ex: [
           ["Standing Cable Flye Combo","6","8–12","45–60s","2× low→high / 2× mid / 2× high→low · superset Push-Up to failure"],
           ["Flat Machine Press","4","8–12","45–60s",""],
-          ["Machine Chest Flye","7","10","30s","FST-7"],
           ["Standing Military Press","3","8–12","45–60s",""],
           ["Leaning Cable Lateral Raise","3","12–15","45–60s",""],
           ["Spider Curl","4","10–15","45–60s",""],
@@ -504,7 +508,6 @@ const WEEKS = [
         ex: [
           ["Sumo Deadlift","4","6–8","60–90s","Main lower-back lift"],
           ["Box Squat","4","8–12","60–90s","Heaviest day of the block — swap for leg press if beat up"],
-          ["Walking Lunge","4","10–12 / leg","45–60s",""],
           ["Seated Leg Curl","7","10","30s","FST-7"],
           ["Hip Thrust","3","10–12","45–60s",""],
           ["Donkey Calf Raise","4","12–15","45–60s",""],
@@ -530,6 +533,9 @@ const WEEKS = [
 ];
 
 const STORE_PREFIX = 'raouf4wk:';
+
+// Standing Cable Flye Combo rows track three separate weights, one per angle variation.
+const COMBO_VARS = [['lohi', 'low→high'], ['mid', 'mid'], ['hilo', 'high→low']];
 
 function loadNotes(){
   try { return JSON.parse(localStorage.getItem(STORE_PREFIX + 'notes') || '{}'); }
@@ -618,6 +624,11 @@ function wt(input, id){
 }
 function applyWeights(){
   document.querySelectorAll('.row').forEach(r => {
+    const combo = r.querySelectorAll('.kgcell .kgcombo input');
+    if (combo.length){
+      combo.forEach(inp => inp.value = localStorage.getItem(kgKey(r.id) + ':' + inp.getAttribute('data-var')) || '');
+      return; // combo rows have their own per-variation boxes (no lock/side/max compare)
+    }
     const inp = r.querySelector('.kgcell input.kg');
     if (inp) inp.value = localStorage.getItem(kgKey(r.id)) || '';
     const lock = r.querySelector('.lockbtn');
@@ -870,7 +881,10 @@ const MUSCLES = {
   "Suitcase Carry":"core & grip",
   "Sled Push":"conditioning & legs",
   "Pallof Press":"core (anti-rotation)",
-  "Cable Wood Chop":"core (rotation & anti-rotation)"
+  "Cable Wood Chop":"core (rotation & anti-rotation)",
+  "Seated Dips":"lower chest & triceps",
+  "Single-Arm Cable Chest Press":"chest",
+  "Spider Lateral Raise":"side shoulders"
 };
 
 // Alternative for every exercise: same movement pattern on different equipment — for when
@@ -967,7 +981,10 @@ const ALTS = {
   "Suitcase Carry":"Farmer Walk",
   "Sled Push":"Burpees (finisher)",
   "Pallof Press":"Cable Wood Chop",
-  "Cable Wood Chop":"Pallof Press"
+  "Cable Wood Chop":"Pallof Press",
+  "Seated Dips":"Assisted Dip",
+  "Single-Arm Cable Chest Press":"Landmine Press (half-kneeling)",
+  "Spider Lateral Raise":"Cable Lateral Raise"
 };
 
 const panels = document.getElementById('panels');
@@ -1189,17 +1206,44 @@ WEEKS.forEach((week, wi) => {
 
       const kg = document.createElement('div');
       kg.className = 'kgcell';
-      const ki = document.createElement('input');
-      ki.type = 'text';
-      ki.className = 'kg';
-      ki.setAttribute('list', 'kglist');
-      ki.placeholder = 'kg';
-      ki.title = 'Highest weight used (kg)';
-      ki.setAttribute('inputmode', 'decimal');
-      ki.setAttribute('autocomplete', 'off');
-      ki.value = localStorage.getItem(kgKey(id)) || '';
-      ki.addEventListener('input', () => { wt(ki, id); refreshKgCmp(row); }); // save every keystroke
-      kg.appendChild(ki);
+      if (name === 'Standing Cable Flye Combo'){
+        // Three small weight boxes — one per flye variation (low→high / mid / high→low).
+        COMBO_VARS.forEach(([vs, lbl]) => {
+          const wrap = document.createElement('div');
+          wrap.className = 'kgcombo';
+          const ki = document.createElement('input');
+          ki.type = 'text';
+          ki.className = 'kg';
+          ki.setAttribute('list', 'kglist');
+          ki.setAttribute('data-var', vs);
+          ki.setAttribute('placeholder', lbl);
+          ki.title = lbl + ' weight (kg)';
+          ki.setAttribute('inputmode', 'decimal');
+          ki.setAttribute('autocomplete', 'off');
+          ki.value = localStorage.getItem(kgKey(id) + ':' + vs) || '';
+          ki.addEventListener('input', () => {
+            if (ki.value.trim()) localStorage.setItem(kgKey(id) + ':' + vs, ki.value.trim());
+            else localStorage.removeItem(kgKey(id) + ':' + vs);
+          });
+          wrap.appendChild(ki);
+          const la = document.createElement('div');
+          la.className = 'kgvarlbl';
+          la.textContent = lbl;
+          wrap.appendChild(la);
+          kg.appendChild(wrap);
+        });
+      } else {
+        const ki = document.createElement('input');
+        ki.type = 'text';
+        ki.className = 'kg';
+        ki.setAttribute('list', 'kglist');
+        ki.placeholder = 'kg';
+        ki.title = 'Highest weight used (kg)';
+        ki.setAttribute('inputmode', 'decimal');
+        ki.setAttribute('autocomplete', 'off');
+        ki.value = localStorage.getItem(kgKey(id)) || '';
+        ki.addEventListener('input', () => { wt(ki, id); refreshKgCmp(row); }); // save every keystroke
+        kg.appendChild(ki);
 
       // Lock button: saves the current Best kg as your personal Max benchmark.
       // Click again to unlock (clears the benchmark, not your Best kg).
@@ -1242,6 +1286,7 @@ WEEKS.forEach((week, wi) => {
       cmp.className = 'kgcmp';
       kg.appendChild(cmp);
       refreshKgCmp(row);
+      }
 
       const r = document.createElement('div');
       r.className = 'rest';
@@ -1310,6 +1355,14 @@ applyDayState(); // restore any running timers / done totals after a reload
 function collectWeights(){
   const out = {};
   document.querySelectorAll('.row').forEach(r => {
+    const combo = r.querySelectorAll('.kgcell .kgcombo input');
+    if (combo.length){
+      combo.forEach(inp => {
+        const v = inp.value.trim();
+        if (v) out[r.id + ':' + inp.getAttribute('data-var')] = v;
+      });
+      return;
+    }
     const inp = r.querySelector('.kgcell input.kg');
     const v = inp ? inp.value.trim() : '';
     if (v) out[r.id] = v;
