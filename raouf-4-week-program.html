@@ -65,10 +65,11 @@
   }
   .row{
     display:grid; grid-template-columns:42px 1fr 96px 168px 92px 26px; gap:10px;
-    padding:10px 16px; border-bottom:1px solid #f1f4f7; align-items:start;
+    padding:10px 16px; border-bottom:1px solid #f1f4f7; align-items:start; min-width:0;
   }
   .row:last-child{border-bottom:0}
   .row:hover{background:#fafcfd}
+  .row > *{min-width:0} /* let 1fr columns actually shrink instead of overflowing on narrow screens */
   .idx{color:var(--muted); font-size:13px; padding-top:2px}
   .ex a{color:#0c5f8a; text-decoration:none; font-weight:600}
   .ex a:hover{text-decoration:underline}
@@ -180,6 +181,10 @@
     .kgcombo{flex:1 1 34px}
     .kgcombo input{font-size:16px; max-width:none}
     .sets{grid-area:s; padding-top:5px} .rest{grid-area:r; padding-top:2px}
+    /* Long muscle tags (e.g. "(whole back & hamstrings)") must wrap so the row
+       never exceeds the viewport and pushes the keep/check column off-screen. */
+    .ex .tag,.ex .id{white-space:normal; word-break:break-word; display:inline-block; vertical-align:1px; max-width:100%}
+    .ex .id{margin-right:0}
 
     /* Header + toolbar: let everything wrap so buttons never overflow */
     header.top{position:static; padding:12px 14px 0}
